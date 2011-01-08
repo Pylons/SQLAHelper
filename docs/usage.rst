@@ -231,9 +231,7 @@ API
 
 .. autofunction:: add_engine
 
-.. autofunction:: config_dbsession
-
-.. autofunction:: get_dbsession
+.. autofunction:: get_session
 
 .. autofunction:: get_engine
 
