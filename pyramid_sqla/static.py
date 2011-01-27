@@ -66,9 +66,12 @@ class StaticViewPredicate(object):
 
     def __call__(self, info, request):
         subpath = info["match"]["subpath"]
+        #log.debug("subpath is %r", subpath)
         if not subpath:
+            #log.debug("no subpath, returning false")
             return False
         parts = [self.subdir]
         parts.extend(subpath)
         resource_name = "/".join(parts)
+        #log.debug("package=%r, resource_name=%r", self.package, resource_name)
         return pkg_resources.resource_exists(self.package, resource_name)
