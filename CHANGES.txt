@@ -1,3 +1,11 @@
+1.0rc3 (unreleased)
+-------------------
+- Clone repository 'pyramid_akhet' from 'pyramid_sqla'.
+- Delete application template and non-SQLAlchemy code; they're now in
+  pyramid_akhet-1.0b1.
+- Change ``pyramid_sqla`` from a package to a module.
+- Move pyramid_sqla/tests/test.py to tests.py. 
+
 1.0rc2 (2010-02-20, never released)
 -----------------------------------
 - ``add_static_route`` is now a Pyramid config method if you call the new

@@ -15,44 +15,44 @@
 import os
 
 from setuptools import setup
-from setuptools import find_packages
+#from setuptools import find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.txt')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
-    'pyramid', 
     'SQLAlchemy',
-    'transaction',
-    'repoze.tm2',
     'zope.sqlalchemy']
 
+tests_require = [
+    "transaction",
+    ]
+
 entry_points = """
-    [paste.paster_create_template]
-    pyramid_sqla=pyramid_sqla.paster_templates:PyramidSQLAProjectTemplate
 """
 
 setup(name='pyramid_sqla',
       version='1.0rc2',
-      description='A SQLAlchemy library and Pylons-like application template for Pyramid',
+      description='A SQLAlchemy library for Pyramid applications',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
         "Intended Audience :: Developers",
         "Framework :: Pylons",
         "Programming Language :: Python",
         "License :: OSI Approved :: MIT License",
+        "Topic :: Database",
         ],
       keywords='web wsgi pylons pyramid',
       author="Mike Orr",
       author_email="sluggoster@gmail.com",
       url="http://docs.pylonshq.com",
       license="MIT",
-      packages=find_packages(),
+      py_modules=["pyramid_sqla"],
       include_package_data=True,
       zip_safe=False,
-      tests_require = requires,
-      install_requires = requires,
+      tests_require=tests_require,
+      install_requires = ["SQLAlchemy", "zope.sqlalchemy"],
       test_suite="pyramid_sqla",
       entry_points=entry_points,
       )
