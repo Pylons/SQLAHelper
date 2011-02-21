@@ -1,5 +1,5 @@
-development
------------
+1.0rc2 (2010-02-20, never released)
+-----------------------------------
 - ``add_static_route`` is now a Pyramid config method if you call the new
   ``includeme`` function. This is used in the application template.
 - Add ``pyramid_sqla`` as a dependency in the application template.
