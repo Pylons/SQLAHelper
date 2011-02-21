@@ -18,28 +18,27 @@ tests_require = [
 entry_points = """
 """
 
-setup(name='pyramid_sqla',
-      version='1.0rc2',
-      description='A SQLAlchemy library for Pyramid applications',
+setup(name='SQLAHelper',
+      version='1.0b1',
+      description='A convenience library SQLAlchemy web applications',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
         "Intended Audience :: Developers",
-        "Framework :: Pylons",
         "Programming Language :: Python",
         "License :: OSI Approved :: MIT License",
         "Topic :: Database",
         ],
-      keywords='web wsgi pylons pyramid',
+      keywords='',
       author="Mike Orr",
       author_email="sluggoster@gmail.com",
       url="http://docs.pylonshq.com",
       license="MIT",
-      py_modules=["pyramid_sqla"],
+      py_modules=["sqlahelper"],
       include_package_data=True,
       zip_safe=False,
       tests_require=tests_require,
-      install_requires = ["SQLAlchemy", "zope.sqlalchemy"],
-      test_suite="pyramid_sqla",
+      install_requires = requires,
+      test_suite="sqlahelper",
       entry_points=entry_points,
       )
 

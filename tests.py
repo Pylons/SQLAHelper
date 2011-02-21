@@ -6,7 +6,7 @@ import unittest
 import sqlalchemy as sa
 from sqlalchemy.engine.base import Engine
 
-import pyramid_sqla as psqla
+import sqlahelper as sa_helper
 
 class DBInfo(object):
     def __init__(self, dir, filename):
@@ -21,7 +21,7 @@ class PyramidSQLATestCase(unittest.TestCase):
         self.db3 = DBInfo(self.dir, "db3.sqlite")
 
     def tearDown(self):
-        psqla.reset()
+        sa_helper.reset()
         shutil.rmtree(self.dir, True)
 
     if not hasattr(unittest.TestCase, "assertIsInstance"): # pragma: no cover
@@ -43,17 +43,17 @@ class PyramidSQLATestCase(unittest.TestCase):
 
 class TestAddEngine(PyramidSQLATestCase):
     def test_keyword_args(self):
-        engine = psqla.add_engine(url=self.db1.url)
+        engine = sa_helper.add_engine(url=self.db1.url)
         self.assertIsInstance(engine, Engine)
 
     def test_simplest_settings(self):
         settings = {"sqlalchemy.url": self.db1.url}
-        engine = psqla.add_engine(settings, prefix="sqlalchemy.")
+        engine = sa_helper.add_engine(settings, prefix="sqlalchemy.")
         self.assertIsInstance(engine, Engine)
 
     def test_existing_engine(self):
         e = sa.create_engine(self.db1.url)
-        engine = psqla.add_engine(engine=e)
+        engine = sa_helper.add_engine(engine=e)
         self.assertIs(engine, e)
 
     def test_multiple_engines(self):
@@ -61,47 +61,47 @@ class TestAddEngine(PyramidSQLATestCase):
             "sqlalchemy.url": self.db1.url,
             "stats.url": self.db2.url,
             "foo": "bar"}
-        default = psqla.add_engine(settings)
-        stats = psqla.add_engine(settings, name="stats", prefix="stats.")
+        default = sa_helper.add_engine(settings)
+        stats = sa_helper.add_engine(settings, name="stats", prefix="stats.")
         # Can we retrieve the engines?
-        self.assertIs(psqla.get_engine(), default)
-        self.assertIs(psqla.get_engine("default"), default)
-        self.assertIs(psqla.get_engine("stats"), stats)
+        self.assertIs(sa_helper.get_engine(), default)
+        self.assertIs(sa_helper.get_engine("default"), default)
+        self.assertIs(sa_helper.get_engine("stats"), stats)
         # Are the session binding and base binding set correctly?
-        self.assertIs(psqla.get_session().bind, default)
-        self.assertIs(psqla.get_base().metadata.bind, default)
+        self.assertIs(sa_helper.get_session().bind, default)
+        self.assertIs(sa_helper.get_base().metadata.bind, default)
 
     def test_multiple_engines_without_default(self):
         settings = {
             "db1.url": self.db1.url,
             "db2.url": self.db2.url,
             "foo": "bar"}
-        db1 = psqla.add_engine(settings, name="db1", prefix="db1.")
-        db2 = psqla.add_engine(settings, name="db2", prefix="db2.")
+        db1 = sa_helper.add_engine(settings, name="db1", prefix="db1.")
+        db2 = sa_helper.add_engine(settings, name="db2", prefix="db2.")
         # Can we retrieve the engines?
-        self.assertIs(psqla.get_engine("db1"), db1)
-        self.assertIs(psqla.get_engine("db2"), db2)
+        self.assertIs(sa_helper.get_engine("db1"), db1)
+        self.assertIs(sa_helper.get_engine("db2"), db2)
         # There should be no default engine
-        self.assertIs(psqla.get_session().bind, None)
-        self.assertIs(psqla.get_base().metadata.bind, None)
-        self.assertRaises(RuntimeError, psqla.get_engine)
+        self.assertIs(sa_helper.get_session().bind, None)
+        self.assertIs(sa_helper.get_base().metadata.bind, None)
+        self.assertRaises(RuntimeError, sa_helper.get_engine)
 
 class TestDeclarativeBase(PyramidSQLATestCase):
     def test1(self):
         import transaction
-        Base = psqla.get_base()
+        Base = sa_helper.get_base()
         class Person(Base):
             __tablename__ = "people"
             id = sa.Column(sa.Integer, primary_key=True)
             first_name = sa.Column(sa.Unicode(100), nullable=False)
             last_name = sa.Column(sa.Unicode(100), nullable=False)
-        psqla.add_engine(url=self.db1.url)
+        sa_helper.add_engine(url=self.db1.url)
         Base.metadata.create_all()
         fred = Person(id=1, first_name=u"Fred", last_name=u"Flintstone")
         wilma = Person(id=2, first_name=u"Wilma", last_name=u"Flintstone")
         barney = Person(id=3, first_name=u"Barney", last_name=u"Rubble")
         betty = Person(id=4, first_name=u"Betty", last_name=u"Rubble")
-        Session = psqla.get_session()
+        Session = sa_helper.get_session()
         sess = Session()
         sess.add_all([fred, wilma, barney, betty])
         transaction.commit()
@@ -120,19 +120,19 @@ class TestDeclarativeBase(PyramidSQLATestCase):
         self.assertEqual(result, control)
 
     def test1_without_transaction_manager(self):
-        Base = psqla.get_base()
+        Base = sa_helper.get_base()
         class Person(Base):
             __tablename__ = "people"
             id = sa.Column(sa.Integer, primary_key=True)
             first_name = sa.Column(sa.Unicode(100), nullable=False)
             last_name = sa.Column(sa.Unicode(100), nullable=False)
-        psqla.add_engine(url=self.db1.url)
+        sa_helper.add_engine(url=self.db1.url)
         Base.metadata.create_all()
         fred = Person(id=1, first_name=u"Fred", last_name=u"Flintstone")
         wilma = Person(id=2, first_name=u"Wilma", last_name=u"Flintstone")
         barney = Person(id=3, first_name=u"Barney", last_name=u"Rubble")
         betty = Person(id=4, first_name=u"Betty", last_name=u"Rubble")
-        Session = psqla.get_session()
+        Session = sa_helper.get_session()
         Session.configure(extension=None)  # XXX Kludge for SQLAlchemy/ZopeTransactionExtension bug
         sess = Session()
         sess.add_all([fred, wilma, barney, betty])
@@ -156,21 +156,21 @@ class Test_add_engine(unittest.TestCase):
         self.engines = {}
         self.session = DummySession()
         self.base = DummyBase()
-        self.old_engines = psqla._engines
-        self.old_base = psqla._base
-        self.old_session = psqla._session
-        psqla._engines = self.engines
-        psqla._base = self.base
-        psqla._session = self.session
+        self.old_engines = sa_helper._engines
+        self.old_base = sa_helper._base
+        self.old_session = sa_helper._session
+        sa_helper._engines = self.engines
+        sa_helper._base = self.base
+        sa_helper._session = self.session
 
     def tearDown(self):
-        psqla._engines = self.old_engines
-        psqla._base = self.old_base
-        psqla._session = self.old_session
+        sa_helper._engines = self.old_engines
+        sa_helper._base = self.old_base
+        sa_helper._session = self.old_session
 
     def _callFUT(self, settings=None, name='default', prefix='sqlalchemy.',
                  engine=None, **engine_args):
-        return psqla.add_engine(
+        return sa_helper.add_engine(
             settings=settings, name=name, prefix=prefix, engine=engine,
             **engine_args)
 
