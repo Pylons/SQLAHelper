@@ -9,7 +9,9 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
     'SQLAlchemy',
-    'zope.sqlalchemy']
+    'zope.interface',  # Used by zope.sqlalchemy
+    'zope.sqlalchemy'
+    ]
 
 tests_require = [
     "transaction",
