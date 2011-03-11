@@ -31,104 +31,46 @@ __all__ = [
     ]
     # "reset" is not included because it's not intended for normal use.
 
-def add_engine(settings=None, name="default", prefix="sqlalchemy.",
-    engine=None, **engine_args):
-    """Configure a SQLAlchemy database engine and return it.
+def add_engine(engine, name="default"):
+    """Add a SQLAlchemy engine to the engine repository.
 
-    I configure an engine in different ways depending on the combination of
-    arguments. If ``name`` is not specified or its value is "default", I also
-    bind the scoped session and the declarative base's metadata to it.
+    The engine will be stored in the repository under the specified name, and
+    can be retrieved later by calling ``get_engine(name)``.
 
-    Arguments:
-
-    * ``settings``: A dict of application settings (e.g., as parsed from an INI
-      file). If this argument is passed, I call
-      ``sqlalchemy.engine_from_config(settings, prefix)``.
-    * ``name``: The engine name. This is used to retrieve the engine later. The
-      default name is "default".
-
-    * ``prefix``: This is used with ``settings`` to calcuate the engine args.
-      The default value is "sqlalchemy.", which tells SQLAlchemy to use the
-      keys starting with "sqlalchemy." for this engine.
-
-     Note: SQLAlchemy does not allow ``prefix`` to be ``""``. If you have the
-     exact engine args in a dict without a prefix, pass them as keyword args. 
-
-    * ``engine``: An existing SQLAlchemy engine. If you pass this you can't
-      pass ``settings``, ``prefix``, or ``**engine_args``.
-
-    * ``**engine_args``: Engine args supplied as keyword arguments. If
-      ``settings`` is also passed, the keyword args override their
-      corresponding settings. If ``settings`` is not passed, I call
-      ``sqlalchemy.create_engine(**engine_args)`` directly.
-
-    SQLAlchemy will raise a ``KeyError`` if the database URL is not specified.
-    This may indicate the settings dict has no "PREFIX.url" key or that the
-    ``url`` keyword arg was not passed.
-
-    Examples::
-
-        # Configure engine using a settings dict
-        settings = {"sqlalchemy.url": "mysql://..."}
-        engine = add_engine(settings, prefix="sqlalchemy.")
-
-        # Configure engine via keyword args
-        engine = add_engine(url="mysql://...")
-
-        # ``e`` is an existing SQLAlchemy engine
-        engine = add_engine(e)
-
-        # Configure two engines, the first one as default
-        settings = {"db1.url": "mysql://...", "db2.url": "postgresql://..."})
-        engine1 = add_engine(settings, prefix="db1.")
-        engine2 = add_engine(settings, name="stats", prefix="db2.")
-
-        # Configure two engines with no default engine
-        settings = {"db1.url": "mysql://...", "db2.url": "postgresql://..."})
-        engine1 = add_engine(settings, name="engine1", prefix="db1.")
-        engine2 = add_engine(settings, name="engine2", prefix="db2.")
+    If the name is "default" or omitted, this will be the application's default
+    engine. The contextual session will be bound to it, the declarative base's
+    metadata will be bound to it, and calling ``get_engine()`` without an
     """
-    if engine and (settings or engine_args):
-        m = "can't specify settings or engine args when ``engine`` is present"
-        raise TypeError(m)
-    elif engine:
-        e = engine
-    elif settings:
-        if not prefix:
-            raise ValueError("empty prefix ('') is not allowed")
-        url_key = prefix + "url"
-        if url_key not in settings and "url" not in engine_args:
-            msg = """\
-no database URL specified
-settings key '%s' is required when using prefix='%s'"""
-            msg %= (url_key, prefix)
-            if prefix and not prefix.endswith("."):
-                msg += "\nHint: did you mean prefix='%s.'?" % prefix
-            raise ValueError(msg)
-        e = sa.engine_from_config(settings, prefix, **engine_args)
-    else:
-        try:
-            url = engine_args.pop("url")
-        except KeyError:
-            raise TypeError("must pass settings dict or ``url`` keyword arg")
-        e = sa.create_engine(url, **engine_args)
-    _engines[name] = e
+    _engines[name] = engine
     if name == "default":
-        _session.configure(bind=e)
-        _base.metadata.bind = e
-    return e
+        _session.configure(bind=engine)
+        _base.metadata.bind = engine
 
 def get_session():
-    """Return the central SQLAlchemy scoped session."""
+    """Return the central SQLAlchemy contextual session.
+    
+    To customize the kinds of sessions this contextual session creates, call
+    its ``configure`` method::
+
+        sqlahelper.get_session().configure(...)
+
+    But if you do this, be careful about the 'ext' arg. If you pass it, the
+    ZopeTransactionExtension will be disabled and you won't be able to use this
+    contextual session with transaction managers. To keep the extension active
+    you'll have to re-add it as an argument. The extension is accessible under
+    the semi-private variable ``_zte``. Here's an example of adding your own
+    extensions without disabling the ZTE::
+
+        sqlahelper.get_session().configure(ext=[sqlahelper._zte, ...])
+    """
     return _session
 
 def get_engine(name="default"):
-    """Return a database engine previously configured with ``add_engine``.
+    """Look up an engine by name in the engine repository and return it.
 
-    If no argument, return the default engine. If an engine name is passed,
-    return the engine that was registered under that name.
+    If no argument, look for an engine named "default".
 
-    Raise ``RuntimeError`` if no engine by that name was configured.
+    Raise ``RuntimeError`` if no engine by the specified was configured.
     """
     try:
         return _engines[name]
@@ -136,6 +78,6 @@ def get_engine(name="default"):
         raise RuntimeError("No engine '%s' was configured" % name)
 
 def get_base():
-    """Return the central declarative base.
+    """Return the central SQLAlchemy declarative base.
     """
     return _base

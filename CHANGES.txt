@@ -1,11 +1,17 @@
-1.0b1 (unreleased)
+dev   (unreleased)
 ------------------
 
-Repository sqlahelper created
+
+1.0b1 (2011-03-11)
+------------------
+- Remove engine-creation features from ``add_engine()``. It was getting too
+  complex to document all the permutations. You'll have to create the engine
+  yourself and pass it to ``add_engine``.
+
+Repository SQLAHelper created
 ------------------------------
-- Clone repository 'sqlahelper' from 'pyramid_sqla'.
-- Delete application template and non-SQLAlchemy code; they're now in
-  pyramid_akhet-1.0b1.
+- Clone repository 'SQLAHelper' from 'pyramid_sqla'.
+- Delete all non-SQLAlchemy code and docs; they've moved to the Akhet package.
 - Rename ``pyramid_sqla`` to ``sqlahelper`` and change it from a package to a
   module.
 - Move pyramid_sqla/tests/test.py to tests.py. 
