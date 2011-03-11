@@ -6,7 +6,7 @@ import unittest
 import sqlalchemy as sa
 from sqlalchemy.engine.base import Engine
 
-import sqlahelper as sa_helper
+import sqlahelper
 
 class DBInfo(object):
     def __init__(self, dir, filename):
@@ -21,7 +21,7 @@ class PyramidSQLATestCase(unittest.TestCase):
         self.db3 = DBInfo(self.dir, "db3.sqlite")
 
     def tearDown(self):
-        sa_helper.reset()
+        sqlahelper.reset()
         shutil.rmtree(self.dir, True)
 
     if not hasattr(unittest.TestCase, "assertIsInstance"): # pragma: no cover
@@ -42,66 +42,56 @@ class PyramidSQLATestCase(unittest.TestCase):
 
 
 class TestAddEngine(PyramidSQLATestCase):
-    def test_keyword_args(self):
-        engine = sa_helper.add_engine(url=self.db1.url)
-        self.assertIsInstance(engine, Engine)
-
-    def test_simplest_settings(self):
-        settings = {"sqlalchemy.url": self.db1.url}
-        engine = sa_helper.add_engine(settings, prefix="sqlalchemy.")
-        self.assertIsInstance(engine, Engine)
-
-    def test_existing_engine(self):
+    def test_one_engine(self):
         e = sa.create_engine(self.db1.url)
-        engine = sa_helper.add_engine(engine=e)
-        self.assertIs(engine, e)
+        sqlahelper.add_engine(e)
+        retrieved = sqlahelper.get_engine()
+        self.assertIs(retrieved, e)
 
     def test_multiple_engines(self):
-        settings = {
-            "sqlalchemy.url": self.db1.url,
-            "stats.url": self.db2.url,
-            "foo": "bar"}
-        default = sa_helper.add_engine(settings)
-        stats = sa_helper.add_engine(settings, name="stats", prefix="stats.")
+        default = sa.create_engine(self.db1.url)
+        stats = sa.create_engine(self.db2.url)
+        sqlahelper.add_engine(default)
+        sqlahelper.add_engine(stats, "stats")
         # Can we retrieve the engines?
-        self.assertIs(sa_helper.get_engine(), default)
-        self.assertIs(sa_helper.get_engine("default"), default)
-        self.assertIs(sa_helper.get_engine("stats"), stats)
+        self.assertIs(sqlahelper.get_engine(), default)
+        self.assertIs(sqlahelper.get_engine("default"), default)
+        self.assertIs(sqlahelper.get_engine("stats"), stats)
         # Are the session binding and base binding set correctly?
-        self.assertIs(sa_helper.get_session().bind, default)
-        self.assertIs(sa_helper.get_base().metadata.bind, default)
+        self.assertIs(sqlahelper.get_session().bind, default)
+        self.assertIs(sqlahelper.get_base().metadata.bind, default)
 
     def test_multiple_engines_without_default(self):
-        settings = {
-            "db1.url": self.db1.url,
-            "db2.url": self.db2.url,
-            "foo": "bar"}
-        db1 = sa_helper.add_engine(settings, name="db1", prefix="db1.")
-        db2 = sa_helper.add_engine(settings, name="db2", prefix="db2.")
+        db1 = sa.create_engine(self.db1.url)
+        db2 = sa.create_engine(self.db2.url)
+        sqlahelper.add_engine(db1, "db1")
+        sqlahelper.add_engine(db2, "db2")
         # Can we retrieve the engines?
-        self.assertIs(sa_helper.get_engine("db1"), db1)
-        self.assertIs(sa_helper.get_engine("db2"), db2)
+        self.assertIs(sqlahelper.get_engine("db1"), db1)
+        self.assertIs(sqlahelper.get_engine("db2"), db2)
         # There should be no default engine
-        self.assertIs(sa_helper.get_session().bind, None)
-        self.assertIs(sa_helper.get_base().metadata.bind, None)
-        self.assertRaises(RuntimeError, sa_helper.get_engine)
+        self.assertIs(sqlahelper.get_session().bind, None)
+        self.assertIs(sqlahelper.get_base().metadata.bind, None)
+        self.assertRaises(RuntimeError, sqlahelper.get_engine)
+
 
 class TestDeclarativeBase(PyramidSQLATestCase):
     def test1(self):
         import transaction
-        Base = sa_helper.get_base()
+        Base = sqlahelper.get_base()
         class Person(Base):
             __tablename__ = "people"
             id = sa.Column(sa.Integer, primary_key=True)
             first_name = sa.Column(sa.Unicode(100), nullable=False)
             last_name = sa.Column(sa.Unicode(100), nullable=False)
-        sa_helper.add_engine(url=self.db1.url)
+        engine = sa.create_engine(self.db1.url)
+        sqlahelper.add_engine(engine)
         Base.metadata.create_all()
         fred = Person(id=1, first_name=u"Fred", last_name=u"Flintstone")
         wilma = Person(id=2, first_name=u"Wilma", last_name=u"Flintstone")
         barney = Person(id=3, first_name=u"Barney", last_name=u"Rubble")
         betty = Person(id=4, first_name=u"Betty", last_name=u"Rubble")
-        Session = sa_helper.get_session()
+        Session = sqlahelper.get_session()
         sess = Session()
         sess.add_all([fred, wilma, barney, betty])
         transaction.commit()
@@ -120,19 +110,20 @@ class TestDeclarativeBase(PyramidSQLATestCase):
         self.assertEqual(result, control)
 
     def test1_without_transaction_manager(self):
-        Base = sa_helper.get_base()
+        Base = sqlahelper.get_base()
         class Person(Base):
             __tablename__ = "people"
             id = sa.Column(sa.Integer, primary_key=True)
             first_name = sa.Column(sa.Unicode(100), nullable=False)
             last_name = sa.Column(sa.Unicode(100), nullable=False)
-        sa_helper.add_engine(url=self.db1.url)
+        engine = sa.create_engine(self.db1.url)
+        sqlahelper.add_engine(engine)
         Base.metadata.create_all()
         fred = Person(id=1, first_name=u"Fred", last_name=u"Flintstone")
         wilma = Person(id=2, first_name=u"Wilma", last_name=u"Flintstone")
         barney = Person(id=3, first_name=u"Barney", last_name=u"Rubble")
         betty = Person(id=4, first_name=u"Betty", last_name=u"Rubble")
-        Session = sa_helper.get_session()
+        Session = sqlahelper.get_session()
         Session.configure(extension=None)  # XXX Kludge for SQLAlchemy/ZopeTransactionExtension bug
         sess = Session()
         sess.add_all([fred, wilma, barney, betty])
@@ -150,80 +141,3 @@ class TestDeclarativeBase(PyramidSQLATestCase):
         result = [x.first_name for x in q]
         control = [u"Wilma", u"Fred", u"Betty", u"Barney"]
         self.assertEqual(result, control)
-
-class Test_add_engine(unittest.TestCase):
-    def setUp(self):
-        self.engines = {}
-        self.session = DummySession()
-        self.base = DummyBase()
-        self.old_engines = sa_helper._engines
-        self.old_base = sa_helper._base
-        self.old_session = sa_helper._session
-        sa_helper._engines = self.engines
-        sa_helper._base = self.base
-        sa_helper._session = self.session
-
-    def tearDown(self):
-        sa_helper._engines = self.old_engines
-        sa_helper._base = self.old_base
-        sa_helper._session = self.old_session
-
-    def _callFUT(self, settings=None, name='default', prefix='sqlalchemy.',
-                 engine=None, **engine_args):
-        return sa_helper.add_engine(
-            settings=settings, name=name, prefix=prefix, engine=engine,
-            **engine_args)
-
-    def test_both_engine_and_settings(self):
-        self.assertRaises(TypeError, self._callFUT, engine=True, settings=True)
-
-    def test_both_engine_and_engine_args(self):
-        self.assertRaises(TypeError, self._callFUT, engine=True, foo='bar')
-
-    def test_explicit_engine(self):
-        engine = DummyEngine()
-        e = self._callFUT(engine=engine)
-        self.failUnless(e is engine)
-        self.failUnless(self.engines['default'], None)
-        self.assertEqual(self.session.bind, e)
-        self.assertEqual(self.base.metadata.bind, e)
-
-    def test_engine_from_settings_no_prefix(self):
-        self.assertRaises(
-            ValueError,
-            self._callFUT, prefix='',
-            settings={'sqlalchemy.url':'sqlite:///:memory:'})
-
-    def test_engine_from_settings_no_url(self):
-        self.assertRaises(ValueError, self._callFUT, settings={'a':'1'})
-
-    def test_engine_from_settings_no_url_bad_prefix(self):
-        self.assertRaises(ValueError,
-                          self._callFUT, prefix='fudge', settings={'a':'1'})
-
-    def test_url_from_engine_args(self):
-        from sqlalchemy.engine.base import Engine
-        e = self._callFUT(url='sqlite:///:memory:')
-        self.assertEqual(e.__class__, Engine)
-
-    def test_url_from_engine_args_no_url(self):
-        self.assertRaises(TypeError, self._callFUT, settings=None)
-
-    def test_engine_from_settings(self):
-        from sqlalchemy.engine.base import Engine
-        e = self._callFUT(settings={'sqlalchemy.url':'sqlite:///:memory:'})
-        self.assertEqual(e.__class__, Engine)
-
-class DummySession(object):
-    def configure(self, **kw):
-        self.__dict__.update(kw)
-
-class DummyMetadata(object):
-    pass
-
-class DummyBase(object):
-    def __init__(self):
-        self.metadata = DummyMetadata()
-
-class DummyEngine(object):
-    pass
