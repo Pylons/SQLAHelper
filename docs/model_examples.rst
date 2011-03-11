@@ -1,11 +1,12 @@
 Model Examples
 ==============
 
-This chapter gives some examples for writing your application models. These are
+This chapter gives some examples for writing your application models. As you
+will see, very little of the code is specific to SQLAHelper. These are
 based on the `SQLAlchemy documentation`_, which should be your primary guide.
 
-These models assume SQLAlchemy 0.6.x and Python >= 2.6. For earlier versions of
-Python, use the ``%`` operator instead of the the string ``.format`` method.
+The examples are based on SQLAlchemy 0.6.x and use the string ``.format``
+method introduced in Python 2.6. In 2.5, use the ``%`` operator instead. 
 
 .. _SQLAlchemy documentation: http://www.sqlalchemy.org/docs/
 
@@ -14,12 +15,12 @@ A simple one-table model
 
 ::
 
-    import pyramid_sqla as psa
+    import sqlahelper
     import sqlalchemy as sa
     import sqlalchemy.orm as orm
 
-    Base = psa.get_base()
-    Session = psa.get_session()
+    Base = sqlahelper.get_base()
+    Session = sqlahelper.get_session()
 
     class User(Base):
         __tablename__ = "users"
@@ -36,15 +37,23 @@ A three-table model
 -------------------
 
 We can expand the above into a three-table model suitable for a medium-sized
-application. (This example uses the string ``.format`` method introduced in
-Python 2.6. In older versions, use the ``%`` operator instead.) ::
+application. We'll also add some instance methods to format multiple fields,
+and some class methods to select a group of records. There are also a couple
+generic functions we wrote along the way.
 
-    import pyramid_sqla as psa
+Please note that we are *not* saying you should use these methods in every
+application, or that our method names and semantics are better than different
+methods that other people have devised. We're just showing what it's possible
+to do with SQLAlchemy.
+
+::
+
+    import sqlahelper
     import sqlalchemy as sa
     import sqlalchemy.orm as orm
 
-    Base = psa.get_base()
-    Session = psa.get_session()
+    Base = sqlahelper.get_base()
+    Session = sqlahelper.get_session()
 
     class User(Base):
         __tablename__ = "users"
@@ -100,6 +109,8 @@ Python 2.6. In older versions, use the ``%`` operator instead.) ::
     # Utility functions
     def filterjoin(sep, *items):
         """Join the items into a string, dropping any that are empty.
+
+        ``sep`` is the delimeter that will be put between them.
         """
         items = filter(None, items)
         return sep.join(items)
@@ -112,7 +123,8 @@ Python 2.6. In older versions, use the ``%`` operator instead.) ::
 
         ``type_`` is the column type.
 
-        ``target`` is the other column this column references.
+        ``target`` is the target of the foreign key (the column in the other
+        table). 
 
         ``nullable``: pass True to allow null values. The default is False
         (the opposite of SQLAlchemy's default, but useful for foreign keys).
@@ -127,10 +139,8 @@ This model has a ``User`` class corresponding to a ``users`` table, an
 ``Address`` class with an ``addresses`` table, and an ``Activity`` class with
 ``activities`` table.  ``users`` is in a 1:Many relationship with
 ``addresses``.  ``users`` is also in a Many:Many`` relationship with
-``activities`` using the association table ``assoc_users_activities``.  This is
-the SQLAlchemy "declarative" syntax, which defines the tables in terms of ORM
-classes subclassed from a declarative ``Base`` class. Association tables do not
-have an ORM class in SQLAlchemy, so we define it using the ``Table``
+Association tables do not have an ORM class in SQLAlchemy so we can't use the
+Declarative syntax for them. Instead we define it using the ``Table``
 constructor as if we weren't using declarative, but it's still tied to the
 Base's "metadata".
 
@@ -152,21 +162,26 @@ Common base class
 -----------------
 
 You can define a superclass for all your ORM classes, with common class methods
-that all of them can use. You can't use ``pyramid_sqla.Base`` in this case
-though so you'll have to define your own declarative base::
+that all of them can use. You can't use SQLAhelper's declarative base in this
+case because it's already created with a different superclass. So you'll have
+to define your own declarative base::
+
+    import sqlalchemy.ext.declarative as declarative
 
     class ORMClass(object):
+        """I am the superclass of the declarative base."""
         @classmethod
         def query(class_):
-            return pyramid_sqla.get_dbsession().query(class_)
+            return sqlahelper.get_session().query(class_)
 
         @classmethod
         def get(class_, id):
-            return pyramid_sqla.get_dbsession().query(class_).get(id)
+            return sqlahelper.get_session().query(class_).get(id)
 
     Base = declarative.declarative_base(cls=ORMClass)
     
     class User(Base):
+        """My inheritance is ORMClass -> Base -> User."""
         __tablename__ = "users"
 
         # Column definitions omitted

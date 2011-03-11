@@ -1,69 +1,40 @@
-pyramid_sqla
-============
-:Version: 1.0rc1, released 2011-01-26
-:PyPI: http://pypi.python.org/pypi/pyramid_sqla
-:Docs: https://bitbucket.org/sluggo/pyramid_sqla/wiki/html/index.html
-:Source: http://bitbucket.org/sluggo/pyramid_sqla (Mercurial)
+SQLAHelper
+==========
+:Version: 1.0b1, released 2010-03-11
+:PyPI: http://pypi.python.org/pypi/SQLAHelper
+:Docs: https://bitbucket.org/sluggo/sqlahelper/wiki/html/index.html
+:Source: http://bitbucket.org/sluggo/sqlahelper (Mercurial)
 
 
-**pyramid_sqla** is a library for Pyramid_ applications using SQLAlchemy_, and
-an application template that brings some of Pylons 1's features to Pyramid.
-The API is now stable; version 1.0rc1 is a release candidate for 1.0.
+**SQLAHeler** is a small library for SQLAlchemy_ web applications. It acts as a
+container for the application's contextual session, engines, and declarative
+base. This avoids circular dependencies or the need for a 'meta' module if your
+model is split across multiple modules. SQLAHelper does not try to hide the
+underlying SQLAlchemy objects; it merely provides a way to organize them and
+some convenience functions for initializing them.
 
-.. admonition:: Important note for version 0.1 users
+The contextual session can be used with transaction managers (it's initialized
+with the ZopeTransactionExtension, as TurboGears has long done). A transaction
+manager provides automatic commit at the end of request processing, or rollback
+if an exception or HTTP error status occurred. SQLAHelper does not include any
+transaction managers, but it's known to work with repoze.tm2_, which is
+middleware and should work with any WSGI framework, and pyramid_tm_ which is
+specific to Pyramid.
 
-   Pyramid 1.0a10 made an incompatible change for applications created with
-   pyramid_sqla 0.1. To use these applications with Pyramid 1.0a10 or later,
-   edit the applications' setup.py and add 'pyramid_handlers' to the 'requires'
-   list, and reinstall the applications.
+Version 1.0b1 is a public beta test before the final release. We want to try it
+in real applications before making it final.
+
+It's currently tested on Python 2.6/Linux but should
+work on 2.5 and other platforms. A set of unit tests is included.
 
 .. _SQLAlchemy: http://sqlalchemy.org/
 .. _Pyramid: http://docs.pylonshq.com/pyramid/dev/
 
-Current features in the library
--------------------------------
-
-* A SQLAlchemy scoped session, a place to register database engines, and a
-  declarative base. These all replace the ``meta`` module in Pylons 1
-  applications, making it easier to structure module code freely without
-  circular imports
-* Initialization requires just one line in __init__.py per database, and no
-  boilerplate code in model
-* Session management à la TurboGears. This commits all changes at the end of a 
-  request, or rolls them back if an exception has occurred. You can still
-  commit and roll back on demand, and even prevent other parts of the
-  application from committing during the request.
-
-Current features in the application template
---------------------------------------------
-
-* The model, application settings, middleware, and logging are preconfigured
-  for a Pylons 1-like SQLAlchemy application
-* The static directory is served under "/" instead of "/static", overlaying 
-  your dynamic URLs.
-* Routing using URL dispatch and view handlers, similar to Routes and
-  controllers in Pylons 1
-* Listen on localhost:5000 by default (localhost for security, 5000 per Pylons
-  1 precedent)
-* Templates ending in .html are passed to Mako (or to your desired templater)
-* A helpers module and the ``h`` template global. (You can change template
-  globals in the subscribers module.)
-* A separate logger is configured for the application package, and is added to
-  the handlers module
-* Configures logging in .ini and handlers
-* A script to initialize your database
-* A production.ini (new in 1.0rc1)
-* The function to add a static directory is now a Configurator method (new in
-  1.0rc2)
-
-pyramid_sqla has five dependencies: Pyramid_, SQLAlchemy_, repoze.tm2_, 
-zope.sqlalchemy_, and transaction_. It's tested on Python 2.6/Linux but should
-work on 2.5 and other platforms. A set of unit tests is included.
-
 .. _zope.sqlalchemy: http://pypi.python.org/pypi/zope.sqlalchemy
-.. _scoped session: http://www.sqlalchemy.org/docs/orm/session.html#contextual-thread-local-sessions
+.. _contextual session: http://www.sqlalchemy.org/docs/orm/session.html#contextual-thread-local-sessions
 .. _repoze.tm2: http://docs.repoze.org/tm2/
 .. _transaction: http://pypi.python.org/pypi/transaction
+.. _pyramid_tm: http://pypi.python.org/pypi/pyramid_tm
 
 
 Documentation
@@ -73,7 +44,6 @@ Documentation
    :maxdepth: 1
 
    usage
-   non_database_features
    model_examples
    bugs
    changes
