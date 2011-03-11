@@ -5,4 +5,9 @@ SQLAHelper.egg-info
 *.pyc
 dist/
 docs/_build
+docs/_themes
 env26/
+
+syntax: regexp
+^pyramid_sqla/pyramid_sqla.egg-info
+^unfinished/.*egg-info
