@@ -22,7 +22,7 @@ entry_points = """
 
 setup(name='SQLAHelper',
       version='1.0b1',
-      description='A convenience library SQLAlchemy web applications',
+      description='A convenience library for SQLAlchemy web applications',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
         "Intended Audience :: Developers",
