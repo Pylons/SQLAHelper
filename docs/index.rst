@@ -2,7 +2,7 @@ SQLAHelper
 ==========
 :Version: 1.0b1, released 2010-03-11
 :PyPI: http://pypi.python.org/pypi/SQLAHelper
-:Docs: https://bitbucket.org/sluggo/sqlahelper/wiki/html/index.html
+:Docs: http://sluggo.scrapping.cc/python/SQLAHelper/
 :Source: http://bitbucket.org/sluggo/sqlahelper (Mercurial)
 
 
@@ -44,9 +44,8 @@ Documentation
    :maxdepth: 1
 
    usage
-   model_examples
-   bugs
    changes
+   bugs
 
 Indices and tables
 ------------------
