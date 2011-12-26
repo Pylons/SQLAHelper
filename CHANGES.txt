@@ -1,6 +1,11 @@
 dev   (unreleased)
 ------------------
 
+1.0 (2011-12-25)
+----------------
+- Add ``set_base()`` function and unit test.
+- Change all remaining references to pyramid_sqla to sqlahelper.
+- Delete demo application, which was for an old version of Pyramid.
 
 1.0b1 (2011-03-11)
 ------------------
