@@ -40,6 +40,7 @@ def add_engine(engine, name="default"):
     If the name is "default" or omitted, this will be the application's default
     engine. The contextual session will be bound to it, the declarative base's
     metadata will be bound to it, and calling ``get_engine()`` without an
+    argument will return it.
     """
     _engines[name] = engine
     if name == "default":
@@ -70,7 +71,7 @@ def get_engine(name="default"):
 
     If no argument, look for an engine named "default".
 
-    Raise ``RuntimeError`` if no engine by the specified was configured.
+    Raise ``RuntimeError`` if no engine under that name has been configured.
     """
     try:
         return _engines[name]
@@ -81,3 +82,19 @@ def get_base():
     """Return the central SQLAlchemy declarative base.
     """
     return _base
+
+def set_base(base):
+    """Set the central SQLAlchemy declarative base.
+
+    Subsequent calls to ``get_base()`` will return this base instead of the
+    default one. This is useful if you need to override the default base, for
+    instance to make it inherit from your own superclass.
+
+    You'll have to make sure that no part of your application's code or any
+    third-party library calls ``get_base()`` before you call ``set_base()``,
+    otherwise they'll get the old base. You can ensure this by calling
+    ``set_base()`` early in the application's execution, before importing the
+    third-party libraries.
+    """
+    global _base
+    _base = base
