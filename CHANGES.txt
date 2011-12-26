@@ -1,5 +1,6 @@
 dev   (unreleased)
 ------------------
+- Prepare for conversion to git/Github/ReadTheDocs (from hg/Bitbucket).
 
 1.0 (2011-12-25)
 ----------------
