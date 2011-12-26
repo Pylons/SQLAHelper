@@ -2,3 +2,6 @@ Todo at release
 
 - Update version number in setup.py, docs/conf.py, and docs/index.rst
 - Update release date in CHANGES.txt and docs/index.rst
+
+To make a release:
+python setup.py egg_info -RDb '' register sdist upload
