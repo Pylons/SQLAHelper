@@ -22,7 +22,9 @@ non-SQL actions in one step. SQLAHelper does not include a transaction manager,
 but it works with the most common ones.
 
 It's currently tested on Python 2.7/Linux but should work on other
-platforms. A set of unit tests is included.
+platforms. A set of unit tests is included. Python 3 compatibility is unknown
+but will be addressed soon.
+
 
 .. _SQLAlchemy: http://sqlalchemy.org/
 .. _Pyramid: http://docs.pylonshq.com/pyramid/dev/
