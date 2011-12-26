@@ -6,14 +6,13 @@ Installation
 
 Install SQLAHelper like any Python package, using either "pip install
 SQLAHelper" or "easy_install SQLAHelper". To check out the development
-repository: "hg clone http://bitbucket.org/sluggo/SQLAHelper". 
+repository: "hg clone http://bitbucket.org/sluggo/sqlahelper SQLAHelper". 
 
 SQLAlchemy vocabulary
 =====================
 
-We can't explain all the concepts needed to use SQLAlchemy here, but a few
-terms are critical for understanding SQLAHelper. To learn how to use
-SQLAlchemy, see the excellent and detailed SQLAlchemy manual.
+These are a few SQLAlchemy terms which are critical for understanding
+SQLAHelper.
 
 An **engine** is a SQLAlchemy object that knows how to connect to a certain
 database. All SQLAlchemy applications have at least one engine.
@@ -23,17 +22,16 @@ object-relational mapper (ORM). These sessions have nothing to do
 with HTTP sessions despite the identical name. A session is required when using
 the ORM, but is not needed for lower-level SQL access.
 
-A **contextual session** (often called a **Session** with a capital S) is a
-threadlocal session proxy. This means it can be a global variable in
-multithreaded web servers (which may be processing different requests
-simultaneously in different threads). Externally it looks like a session;
-internally it maintains a separate session for each thread.  (SQLAlchemy
-manual: `contextual session`_.)
+A **contextual session** (often called a **Session** with a capital S, or a
+**DBSession**) is a threadlocal session proxy. It acts like a session and has
+the same API, but internally it maintains a separate session for each thread.
+This allows it to be a golabl variable in multithreaded web applications.
+(SQLAlchemy manual: `contextual session`_.)
 
-A **declarative base** is a class that serves as the superclass of your ORM
-classes. ORM classes correspond to database tables. SQLAlchemy has two syntaxes
-for defining tables and ORM classes. A declarative base is needed only when
-using the "Declarative" syntax.
+A **declarative base** (often called a **Base**) is a common superclass for all
+your ORM classes. An ORM class represents one database table, and is associated
+with a separate table object. An instance of the class represents one record in
+the table.
 
 Most SQLAlchemy applications nowadays use all of these.
 
@@ -49,11 +47,11 @@ Usage
 2. In models or views or wherever you need them, access the contextual session,
    engines, and declarative base this way::
    
-        import pyramid_sqla
+        import sqlahelper
 
-        Session = pyramid_sqla.get_session()
-        engine = pyramid_sqla.get_dbengine()
-        Base = pyramid_sqla.get_base()
+        Session = sqlahelper.get_session()
+        engine = sqlahelper.get_dbengine()
+        Base = sqlahelper.get_base()
 
 It gets slightly more complex with multiple engines as you'll see below.
 
@@ -72,6 +70,8 @@ API
 .. autofunction:: get_engine
 
 .. autofunction:: get_base
+
+.. autofunction:: set_base
 
 .. autofunction:: reset
 
@@ -132,7 +132,7 @@ engines are also used occasionally::
 
     # Initialize the default engine.
     default = sa.engine_from_config(settings, prefix="sqlalchemy.")
-    sqlalchelper.add_engine(default)
+    sqlahelper.add_engine(default)
 
     # Initialize the other engines.
     engine1 = sa.engine_from_config(settings, prefix="engine1.")
@@ -175,18 +175,6 @@ specify which classes go to which engines. For instance::
 
 The keys in the ``binds`` dict can be SQLAlchemy ORM classes, table objects, or
 mapper objects.
-
-
-Declarative base
-================
-
-The library includes a declarative base for convenience, but some people may
-choose to define their own declarative base in their model instead. And there's
-one case where you *have* to create your own declarative base; namely, if you
-want to modify its constructor args. The ``cls`` argument is the most common:
-it specifies a superclass which all ORM object should inherit. This allows you
-to define class methods and other methods which are available in all your ORM
-classes.
 
 
 .. _Engine Configuration: http://www.sqlalchemy.org/docs/core/engines.html

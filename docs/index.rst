@@ -1,6 +1,6 @@
 SQLAHelper
 ==========
-:Version: 1.0b1, released 2010-03-11
+:Version: 1.0, released 2011-12-25
 :PyPI: http://pypi.python.org/pypi/SQLAHelper
 :Docs: http://sluggo.scrapping.cc/python/SQLAHelper/
 :Source: http://bitbucket.org/sluggo/sqlahelper (Mercurial)
@@ -8,24 +8,21 @@ SQLAHelper
 
 **SQLAHeler** is a small library for SQLAlchemy_ web applications. It acts as a
 container for the application's contextual session, engines, and declarative
-base. This avoids circular dependencies or the need for a 'meta' module if your
-model is split across multiple modules. SQLAHelper does not try to hide the
-underlying SQLAlchemy objects; it merely provides a way to organize them and
-some convenience functions for initializing them.
+base. This avoids circular dependencies between the application's model
+modules, and allows cooperating third-party libraries to use the application's
+session, base, and transaction. SQLAHelper does not try to hide or disguise the
+underlying SQLAlchemy objects; it merely provides a way to organize them.
 
-The contextual session can be used with transaction managers (it's initialized
-with the ZopeTransactionExtension, as TurboGears has long done). A transaction
-manager provides automatic commit at the end of request processing, or rollback
-if an exception or HTTP error status occurred. SQLAHelper does not include any
-transaction managers, but it's known to work with repoze.tm2_, which is
-middleware and should work with any WSGI framework, and pyramid_tm_ which is
-specific to Pyramid.
+The contextual session is initialized with the popular
+ZopeTransactionExtension, which allows it to work with transaction managers
+like pyramid_tm_ and repoze.tm2_. A transaction manager provides automatic
+commit at the end of request processing, or rollback if an exception is raised
+or HTTP error status occurs. Some transaction managers can commit both SQL and
+non-SQL actions in one step. SQLAHelper does not include a transaction manager,
+but it works with the most common ones.
 
-Version 1.0b1 is a public beta test before the final release. We want to try it
-in real applications before making it final.
-
-It's currently tested on Python 2.6/Linux but should
-work on 2.5 and other platforms. A set of unit tests is included.
+It's currently tested on Python 2.7/Linux but should work on other
+platforms. A set of unit tests is included.
 
 .. _SQLAlchemy: http://sqlalchemy.org/
 .. _Pyramid: http://docs.pylonshq.com/pyramid/dev/
@@ -45,12 +42,3 @@ Documentation
 
    usage
    changes
-   bugs
-
-Indices and tables
-------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-

@@ -1,3 +1,4 @@
 Todo at release
 
 - Update version number in setup.py, docs/conf.py, and docs/index.rst
+- Update release date in CHANGES.txt and docs/index.rst
