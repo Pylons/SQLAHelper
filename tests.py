@@ -5,6 +5,7 @@ import unittest
 
 import sqlalchemy as sa
 from sqlalchemy.engine.base import Engine
+import sqlalchemy.ext.declarative as declarative
 
 import sqlahelper
 
@@ -13,7 +14,7 @@ class DBInfo(object):
         self.file = os.path.join(dir, filename)
         self.url = "sqlite:///" + self.file
 
-class PyramidSQLATestCase(unittest.TestCase):
+class SQLAHelperTestCase(unittest.TestCase):
     def setUp(self):
         self.dir = tempfile.mkdtemp()
         self.db1 = DBInfo(self.dir, "db1.sqlite")
@@ -41,7 +42,7 @@ class PyramidSQLATestCase(unittest.TestCase):
                 raise AssertionError("%r is not %r" % (a, b))
 
 
-class TestAddEngine(PyramidSQLATestCase):
+class TestAddEngine(SQLAHelperTestCase):
     def test_one_engine(self):
         e = sa.create_engine(self.db1.url)
         sqlahelper.add_engine(e)
@@ -75,7 +76,7 @@ class TestAddEngine(PyramidSQLATestCase):
         self.assertRaises(RuntimeError, sqlahelper.get_engine)
 
 
-class TestDeclarativeBase(PyramidSQLATestCase):
+class TestDeclarativeBase(SQLAHelperTestCase):
     def test1(self):
         import transaction
         Base = sqlahelper.get_base()
@@ -141,3 +142,21 @@ class TestDeclarativeBase(PyramidSQLATestCase):
         result = [x.first_name for x in q]
         control = [u"Wilma", u"Fred", u"Betty", u"Barney"]
         self.assertEqual(result, control)
+
+
+class TestSetBase(SQLAHelperTestCase):
+    def test1(self):
+        base = sqlahelper.get_base()
+        my_base = declarative.declarative_base()
+        sqlahelper.set_base(my_base)
+        base2 = sqlahelper.get_base()
+        try:
+            self.assertIsNot(base2, base)
+            self.assertIs(base2, my_base)
+        except AttributeError:  # Python < 2.7
+            self.assertNotEqual(base2, base)
+            self.assertEqual(base2, my_base)
+
+
+if __name__ == "__main__":
+    unittest.main()
