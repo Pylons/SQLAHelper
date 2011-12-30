@@ -21,8 +21,8 @@ entry_points = """
 """
 
 setup(name='SQLAHelper',
-      version='1.0',
-      description='A convenience library for SQLAlchemy web applications',
+      version='2.0',
+      description='A place for your SQLAlchemy engines, sessions, and bases.',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
         "Intended Audience :: Developers",
@@ -33,7 +33,7 @@ setup(name='SQLAHelper',
       keywords='',
       author="Mike Orr",
       author_email="sluggoster@gmail.com",
-      url="http://bitbucket.org/sluggo/sqlahelper",
+      url="https://github.com/Pyramid/SQLAHelper",
       license="MIT",
       py_modules=["sqlahelper"],
       include_package_data=True,
