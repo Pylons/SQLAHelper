@@ -71,9 +71,9 @@ class TestAddEngine(SQLAHelperTestCase):
         self.assertIs(sqlahelper.get_engine("db1"), db1)
         self.assertIs(sqlahelper.get_engine("db2"), db2)
         # There should be no default engine
-        self.assertIs(sqlahelper.get_session().bind, None)
-        self.assertIs(sqlahelper.get_base().metadata.bind, None)
-        self.assertRaises(RuntimeError, sqlahelper.get_engine)
+        self.assertIsNone(sqlahelper.get_session().bind)
+        self.assertIsNone(sqlahelper.get_base().metadata.bind)
+        self.assertIsNone(sqlahelper.get_engine())
 
 
 class TestDeclarativeBase(SQLAHelperTestCase):

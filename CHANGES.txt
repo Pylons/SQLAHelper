@@ -1,6 +1,10 @@
-dev   (unreleased)
+2.0   (unreleased)
 ------------------
-- Convert to git/Github/ReadTheDocs (from hg/Bitbucket).
+- New version 2 API.
+- Old version 1 API is supported for backward compatibility.
+- Convert repository to Git (from Mercurial).
+- Repository is now part of the Pylons project.
+  (https://github.com/Pylons/SQLAHelper).
 
 1.0 (2011-12-25)
 ----------------

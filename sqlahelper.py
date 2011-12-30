@@ -3,33 +3,44 @@ import sqlalchemy.ext.declarative as declarative
 import sqlalchemy.orm as orm
 from zope.sqlalchemy import ZopeTransactionExtension
 
-# Global variables initialized by ``reset()``.
-_base = _session = _engines = _zte = None
+# Import only version 1 API with "import *"
+__all__ = ["add_engine", "get_base", "get_session", "get_engine"]
+
+# VERSION 2 API
+
+class AttributeContainer(object):
+    def _clear(self):
+        """Delete all instance attributes. For internal use only."""
+        self.__dict__.clear()
+
+engines = AttributeContainer()
+bases = AttributeContainer()
+sessions = AttributeContainer()
+
+_zte = ZopeTransactionExtension()
+
+def set_default_engine(engine):
+    engines.default = engine
+    bases.default.metadata.bind = engine
+    sessions.default.configure(bind=engine)
 
 def reset():
-    """Delete all engines and restore the initial module state.
+    """Restore the initial module state, deleting all modifications.
     
     This function is mainly for unit tests and debugging. It undoes all
     customizations and reverts to the initial module state.
     """
-    global _base, _session, _engines, _zte
-    _zte = ZopeTransactionExtension()
+    engines._clear()
+    bases._clear()
+    sessions._clear()
+    engines.default = None
+    bases.default = declarative.declarative_base()
     sm = orm.sessionmaker(extension=[_zte])
-    _base = declarative.declarative_base()
-    _session = orm.scoped_session(sm)
-    _engines = {}
+    sessions.default = orm.scoped_session(sm)
 
 reset()
 
-# PUBLIC API
-
-__all__ = [
-    "add_engine", 
-    "get_base",
-    "get_session", 
-    "get_engine",
-    ]
-    # "reset" is not included because it's not intended for normal use.
+# VERSION 1 API
 
 def add_engine(engine, name="default"):
     """Add a SQLAlchemy engine to the engine repository.
@@ -42,10 +53,10 @@ def add_engine(engine, name="default"):
     metadata will be bound to it, and calling ``get_engine()`` without an
     argument will return it.
     """
-    _engines[name] = engine
     if name == "default":
-        _session.configure(bind=engine)
-        _base.metadata.bind = engine
+        set_default_engine(engine)
+    else:
+        setattr(engines, name, engine)
 
 def get_session():
     """Return the central SQLAlchemy contextual session.
@@ -64,7 +75,7 @@ def get_session():
 
         sqlahelper.get_session().configure(ext=[sqlahelper._zte, ...])
     """
-    return _session
+    return sessions.default
 
 def get_engine(name="default"):
     """Look up an engine by name in the engine repository and return it.
@@ -74,14 +85,14 @@ def get_engine(name="default"):
     Raise ``RuntimeError`` if no engine under that name has been configured.
     """
     try:
-        return _engines[name]
-    except KeyError:
+        return getattr(engines, name)
+    except AttributeError:
         raise RuntimeError("No engine '%s' was configured" % name)
 
 def get_base():
     """Return the central SQLAlchemy declarative base.
     """
-    return _base
+    return bases.default
 
 def set_base(base):
     """Set the central SQLAlchemy declarative base.
@@ -96,5 +107,4 @@ def set_base(base):
     ``set_base()`` early in the application's execution, before importing the
     third-party libraries.
     """
-    global _base
-    _base = base
+    bases.default = base
