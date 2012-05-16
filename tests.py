@@ -4,7 +4,6 @@ import tempfile
 import unittest
 
 import sqlalchemy as sa
-from sqlalchemy.engine.base import Engine
 import sqlalchemy.ext.declarative as declarative
 
 import sqlahelper
