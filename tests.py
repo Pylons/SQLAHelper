@@ -4,7 +4,6 @@ import tempfile
 import unittest
 
 import sqlalchemy as sa
-from sqlalchemy.engine.base import Engine
 import sqlalchemy.ext.declarative as declarative
 
 import sqlahelper
@@ -74,6 +73,16 @@ class TestAddEngine(SQLAHelperTestCase):
         self.assertIsNone(sqlahelper.get_session().bind)
         self.assertIsNone(sqlahelper.get_base().metadata.bind)
         self.assertIsNone(sqlahelper.get_engine())
+
+    def test_add_engine_twice(self):
+        db1 = sa.create_engine(self.db1.url)
+        db2 = sa.create_engine(self.db2.url)
+        sqlahelper.add_engine(db1)
+        self.assertIs(sqlahelper.get_session().bind, db1)
+        sqlahelper.add_engine(db2)
+        self.assertIs(sqlahelper.get_session().bind, db2)
+        self.assertIs(sqlahelper.get_session().bind, sqlahelper.sessions.default.registry.registry.value.bind)
+
 
 
 class TestDeclarativeBase(SQLAHelperTestCase):
