@@ -22,6 +22,7 @@ _zte = ZopeTransactionExtension()
 def set_default_engine(engine):
     engines.default = engine
     bases.default.metadata.bind = engine
+    sessions.default.remove()
     sessions.default.configure(bind=engine)
 
 def reset():
